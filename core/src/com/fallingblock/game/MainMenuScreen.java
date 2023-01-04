@@ -1,0 +1,65 @@
+package com.fallingblock.game;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.utils.ScreenUtils;
+
+public class MainMenuScreen implements Screen {
+    final FallingBlock game;
+
+    OrthographicCamera camera;
+    public MainMenuScreen(final FallingBlock game) {
+        this.game = game;
+
+        camera = new OrthographicCamera();
+        camera.setToOrtho(false,600,800);
+    }
+
+    @Override
+    public void show() {
+
+    }
+
+    @Override
+    public void render(float delta) {
+        ScreenUtils.clear(0,0,0.4f,1);
+
+        camera.update();
+        game.batch.setProjectionMatrix(camera.combined);
+
+        game.batch.begin();
+        game.font.draw(game.batch, "Welcome to Falling Block Game!!!",100,150);
+        game.font.draw(game.batch, "Click to start!", 100, 100);
+        game.batch.end();
+
+        if(Gdx.input.isTouched()){
+            dispose();
+        }
+    }
+
+    @Override
+    public void resize(int width, int height) {
+
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public void resume() {
+
+    }
+
+    @Override
+    public void hide() {
+
+    }
+
+    @Override
+    public void dispose() {
+
+    }
+}
