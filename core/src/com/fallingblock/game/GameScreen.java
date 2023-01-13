@@ -1,6 +1,7 @@
 package com.fallingblock.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -8,6 +9,7 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 
 import java.util.Iterator;
 
@@ -19,6 +21,7 @@ public class GameScreen implements Screen {
     Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,blockImage;
     OrthographicCamera camera;
     Array<Rectangle> blocks;
+    long lastMoveTime = 2000000000;
     public GameScreen(final FallingBlock game) {
         this.game = game;
         
@@ -31,7 +34,7 @@ public class GameScreen implements Screen {
         zImage = new Texture(Gdx.files.internal("Z.png"));
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false,600,800);
+        camera.setToOrtho(false,240, 480);
         
         blocks = new Array<>();
         spawnBlock();
@@ -88,7 +91,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0,0,0.4f,1);
+        ScreenUtils.clear(0.05f,0,0.1f,0.5f);
 
         camera.update();
 
@@ -100,10 +103,23 @@ public class GameScreen implements Screen {
         }
         game.batch.end();
 
+        if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && blocks.get(0).x != 0 && TimeUtils.nanoTime() - lastMoveTime > 90000000){
+            blocks.get(0).x -= 24;
+            lastMoveTime = TimeUtils.nanoTime();
+        }
+        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && blocks.get(0).x != 240-blocks.get(0).width && TimeUtils.nanoTime() - lastMoveTime > 90000000){
+            blocks.get(0).x += 24;
+            lastMoveTime = TimeUtils.nanoTime();
+        }
+
         Iterator<Rectangle> iter = blocks.iterator();
         while(iter.hasNext()){
             Rectangle block = iter.next();
             block.y -= 100*Gdx.graphics.getDeltaTime();
+            if(block.y <= 0){
+                iter.remove();
+                spawnBlock();
+            }
         }
     }
 
