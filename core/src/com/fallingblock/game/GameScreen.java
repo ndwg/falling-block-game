@@ -22,6 +22,8 @@ public class GameScreen implements Screen {
     OrthographicCamera camera;
     Array<Rectangle> blocks;
     long lastMoveTime = 2000000000;
+    long gravityTime = 2000000000;
+    int[][] board = new int[20][10];
     public GameScreen(final FallingBlock game) {
         this.game = game;
         
@@ -35,13 +37,62 @@ public class GameScreen implements Screen {
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false,240, 480);
+
+        for(int i = 0; i < 20; i++){
+            for(int j = 0; j < 10; j++){
+                board[i][j] = 0;
+            }
+        }
         
         blocks = new Array<>();
         spawnBlock();
     }
 
     private void spawnBlock() {
-        Rectangle block = new Rectangle();
+        int blockID = MathUtils.random(6);
+        if(blockID==0){
+            board[0][3] = 2;
+            board[0][4] = 2;
+            board[0][5] = 2;
+            board[0][6] = 2;
+        }
+        else if(blockID==1){
+            board[0][3] = 2;
+            board[1][3] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+        else if(blockID==2){
+            board[1][3] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+            board[0][5] = 2;
+        }
+        else if(blockID==3){
+            board[0][4] = 2;
+            board[0][5] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+        else if(blockID==4){
+            board[0][5] = 2;
+            board[0][4] = 2;
+            board[1][4] = 2;
+            board[1][3] = 2;
+        }
+        else if(blockID==5){
+            board[0][4] = 2;
+            board[1][3] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+        else if(blockID==6){
+            board[0][3] = 2;
+            board[0][4] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+        /*Rectangle block = new Rectangle();
         block.x = Gdx.graphics.getWidth()/2;
         block.y = Gdx.graphics.getHeight();
         int blockID = MathUtils.random(6);
@@ -81,7 +132,7 @@ public class GameScreen implements Screen {
             blockImage = zImage;
         }
 
-        blocks.add(block);
+        blocks.add(block);*/
     }
 
     @Override
@@ -98,8 +149,15 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
 
         game.batch.begin();
-        for(Rectangle block : blocks){
+        /*for(Rectangle block : blocks){
             game.batch.draw(blockImage,block.x,block.y);
+        }*/
+        for(int i = 0; i < 20; i++){
+            for(int j = 0; j < 10; j++){
+                if(board[i][j] > 0){
+                    game.batch.draw(iImage,j*24,(19-i)*24);
+                }
+            }
         }
         game.batch.end();
 
@@ -112,13 +170,29 @@ public class GameScreen implements Screen {
             lastMoveTime = TimeUtils.nanoTime();
         }
 
-        Iterator<Rectangle> iter = blocks.iterator();
+        /*Iterator<Rectangle> iter = blocks.iterator();
         while(iter.hasNext()){
             Rectangle block = iter.next();
             block.y -= 100*Gdx.graphics.getDeltaTime();
             if(block.y <= 0){
                 iter.remove();
                 spawnBlock();
+            }
+        }*/
+        if(TimeUtils.nanoTime() - gravityTime > 750000000){
+            gravityTime= TimeUtils.nanoTime();
+
+            for(int i = 19; i >= 0; i--){
+                for(int j = 0; j < 10; j++){
+                    if(board[i][j] == 2 && i != 19){
+                        board[i][j] = 0;
+                        board[i+1][j] = 2;
+                    }
+                    else if(board[i][j] == 2){
+                        paralyze(i);
+                        break;
+                    }
+                }
             }
         }
     }
@@ -152,5 +226,17 @@ public class GameScreen implements Screen {
         sImage.dispose();
         tImage.dispose();
         zImage.dispose();
+    }
+
+    public void paralyze(int row) {
+        for(int i = row-3; i <= row; i++){
+            for(int j = 0; j < 10; j++){
+                if(board[i][j] == 2){
+                    board[i][j] = 1;
+                }
+            }
+        }
+
+        spawnBlock();
     }
 }
