@@ -7,11 +7,11 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.badlogic.gdx.math.Rectangle;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
 
-import java.util.Iterator;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameScreen implements Screen {
     final FallingBlock game;
@@ -20,9 +20,7 @@ public class GameScreen implements Screen {
 
     Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,blockImage;
     OrthographicCamera camera;
-    Array<Rectangle> blocks;
-    long lastMoveTime = 2000000000;
-    long gravityTime = 2000000000;
+    long lastMoveTime = 2000000000, gravityTime = 2000000000;
     int[][] board = new int[20][10];
     public GameScreen(final FallingBlock game) {
         this.game = game;
@@ -43,8 +41,7 @@ public class GameScreen implements Screen {
                 board[i][j] = 0;
             }
         }
-        
-        blocks = new Array<>();
+
         spawnBlock();
     }
 
@@ -92,47 +89,6 @@ public class GameScreen implements Screen {
             board[1][4] = 2;
             board[1][5] = 2;
         }
-        /*Rectangle block = new Rectangle();
-        block.x = Gdx.graphics.getWidth()/2;
-        block.y = Gdx.graphics.getHeight();
-        int blockID = MathUtils.random(6);
-        if(blockID==0){
-            block.height = 24;
-            block.width = 96;
-            blockImage = iImage;
-        }
-        else if(blockID==1){
-            block.height = 48;
-            block.width = 72;
-            blockImage = jImage;
-        }
-        else if(blockID==2){
-            block.height = 48;
-            block.width = 72;
-            blockImage = lImage;
-        }
-        else if(blockID==3){
-            block.height = 48;
-            block.width = 48;
-            blockImage = oImage;
-        }
-        else if(blockID==4){
-            block.height = 48;
-            block.width = 72;
-            blockImage = sImage;
-        }
-        else if(blockID==5){
-            block.height = 48;
-            block.width = 72;
-            blockImage = tImage;
-        }
-        else if(blockID==6){
-            block.height = 48;
-            block.width = 72;
-            blockImage = zImage;
-        }
-
-        blocks.add(block);*/
     }
 
     @Override
@@ -149,9 +105,6 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
 
         game.batch.begin();
-        /*for(Rectangle block : blocks){
-            game.batch.draw(blockImage,block.x,block.y);
-        }*/
         for(int i = 0; i < 20; i++){
             for(int j = 0; j < 10; j++){
                 if(board[i][j] > 0){
@@ -161,35 +114,52 @@ public class GameScreen implements Screen {
         }
         game.batch.end();
 
-        if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && blocks.get(0).x != 0 && TimeUtils.nanoTime() - lastMoveTime > 90000000){
-            blocks.get(0).x -= 24;
+        if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && TimeUtils.nanoTime() - lastMoveTime > 250000000){
             lastMoveTime = TimeUtils.nanoTime();
-        }
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && blocks.get(0).x != 240-blocks.get(0).width && TimeUtils.nanoTime() - lastMoveTime > 90000000){
-            blocks.get(0).x += 24;
-            lastMoveTime = TimeUtils.nanoTime();
+            Point2D[] coords = findTetromino();
+
+            if(checkXBounds(coords, 0) && checkCollisionLeft(coords)){
+                for(int i = 0; i < coords.length; i++){
+                    board[(int)coords[i].getY()][(int)coords[i].getX()] = 0;
+                    board[(int)coords[i].getY()][(int)coords[i].getX()-1] = 2;
+                }
+            }
         }
 
-        /*Iterator<Rectangle> iter = blocks.iterator();
-        while(iter.hasNext()){
-            Rectangle block = iter.next();
-            block.y -= 100*Gdx.graphics.getDeltaTime();
-            if(block.y <= 0){
-                iter.remove();
-                spawnBlock();
+        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && TimeUtils.nanoTime() - lastMoveTime > 250000000){
+            lastMoveTime = TimeUtils.nanoTime();
+            Point2D[] coords = findTetromino();
+
+            if(checkXBounds(coords, 9) && checkCollisionRight(coords)){
+                for(int i = coords.length-1; i >= 0; i--){
+                    board[(int)coords[i].getY()][(int)coords[i].getX()] = 0;
+                    board[(int)coords[i].getY()][(int)coords[i].getX()+1] = 2;
+                }
             }
-        }*/
+        }
+
         if(TimeUtils.nanoTime() - gravityTime > 750000000){
             gravityTime= TimeUtils.nanoTime();
 
             for(int i = 19; i >= 0; i--){
                 for(int j = 0; j < 10; j++){
-                    if(board[i][j] == 2 && i != 19){
+                    if(board[i][j] == 2 && i != 19 && board[i+1][j] != 1){
                         board[i][j] = 0;
                         board[i+1][j] = 2;
                     }
                     else if(board[i][j] == 2){
-                        paralyze(i);
+                        if(i!=19) {
+                            j--;
+
+                            while (j >= 0) {
+                                if (board[i + 1][j] == 2) {
+                                    board[i][j] = 2;
+                                    board[i + 1][j] = 0;
+                                }
+                                j--;
+                            }
+                        }
+                        paralyze();
                         break;
                     }
                 }
@@ -228,15 +198,50 @@ public class GameScreen implements Screen {
         zImage.dispose();
     }
 
-    public void paralyze(int row) {
-        for(int i = row-3; i <= row; i++){
+    public void paralyze() {
+        Point2D[] coords = findTetromino();
+
+        for(int i = 0; i < coords.length; i++){
+            board[(int)coords[i].getY()][(int)coords[i].getX()] = 1;
+        }
+
+        spawnBlock();
+    }
+
+    public Point2D[] findTetromino(){
+        List<Point2D> coordinates = new ArrayList<>();
+
+        for(int i = 0; i < 20; i++){
             for(int j = 0; j < 10; j++){
                 if(board[i][j] == 2){
-                    board[i][j] = 1;
+                    coordinates.add(new Point2D.Double(j,i));
                 }
             }
         }
 
-        spawnBlock();
+        Point2D[] coords = coordinates.toArray(new Point2D[0]);
+
+        return coords;
+    }
+
+    public boolean checkXBounds(Point2D[] coords, int xBound){
+        for(int i = 0; i < coords.length; i++){
+            if(coords[i].getX() == xBound) return false;
+        }
+        return true;
+    }
+
+    public boolean checkCollisionLeft(Point2D[] coords){
+        for(int i = 0; i < coords.length; i++){
+            if(board[(int)coords[i].getY()][(int)coords[i].getX()-1] == 1) return false;
+        }
+        return true;
+    }
+
+    public boolean checkCollisionRight(Point2D[] coords){
+        for(int i = 0; i < coords.length; i++){
+            if(board[(int)coords[i].getY()][(int)coords[i].getX()+1] == 1) return false;
+        }
+        return true;
     }
 }
