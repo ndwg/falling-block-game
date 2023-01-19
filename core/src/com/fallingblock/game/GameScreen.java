@@ -21,6 +21,7 @@ public class GameScreen implements Screen {
     Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,blockImage;
     OrthographicCamera camera;
     long lastMoveTime = 2000000000, gravityTime = 2000000000;
+    int blockID, blockState;
     int[][] board = new int[20][10];
     public GameScreen(final FallingBlock game) {
         this.game = game;
@@ -46,7 +47,8 @@ public class GameScreen implements Screen {
     }
 
     private void spawnBlock() {
-        int blockID = MathUtils.random(6);
+        blockID = MathUtils.random(6);
+        blockState = 0;
         if(blockID==0){
             board[0][3] = 2;
             board[0][4] = 2;
@@ -114,7 +116,7 @@ public class GameScreen implements Screen {
         }
         game.batch.end();
 
-        if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && TimeUtils.nanoTime() - lastMoveTime > 250000000){
+        if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && TimeUtils.nanoTime() - lastMoveTime > 210000000){
             lastMoveTime = TimeUtils.nanoTime();
             Point2D[] coords = findTetromino();
 
@@ -126,7 +128,7 @@ public class GameScreen implements Screen {
             }
         }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && TimeUtils.nanoTime() - lastMoveTime > 250000000){
+        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && TimeUtils.nanoTime() - lastMoveTime > 210000000){
             lastMoveTime = TimeUtils.nanoTime();
             Point2D[] coords = findTetromino();
 
@@ -134,6 +136,40 @@ public class GameScreen implements Screen {
                 for(int i = coords.length-1; i >= 0; i--){
                     board[(int)coords[i].getY()][(int)coords[i].getX()] = 0;
                     board[(int)coords[i].getY()][(int)coords[i].getX()+1] = 2;
+                }
+            }
+        }
+
+        if(Gdx.input.isKeyPressed(Input.Keys.DOWN) && TimeUtils.nanoTime() - lastMoveTime > 180000000){
+            lastMoveTime = TimeUtils.nanoTime();
+            Point2D[] coords = findTetromino();
+
+            if(checkYBounds(coords,19) && checkCollisionBelow(coords)){
+                for(int i = coords.length-1; i >= 0; i--){
+                    board[(int)coords[i].getY()][(int)coords[i].getX()] = 0;
+                    board[(int)coords[i].getY()+1][(int)coords[i].getX()] = 2;
+                }
+            }
+        }
+
+        if(Gdx.input.isKeyPressed(Input.Keys.UP) && TimeUtils.nanoTime() - lastMoveTime > 180000000) {
+            lastMoveTime = TimeUtils.nanoTime();
+            Point2D[] coords = findTetromino();
+            List<Point2D> rotatedCoords = new ArrayList<>();
+
+            if(blockID == 0){
+                if(blockState == 0){
+                    for(int i = 0; i < 4; i++){
+                        rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()-2+i));
+                    }
+
+                    Point2D[] rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        setGridValues(coords,0);
+                        setGridValues(rotatedCoordsArray, 2);
+                        blockState = 1;
+                    }
                 }
             }
         }
@@ -231,6 +267,13 @@ public class GameScreen implements Screen {
         return true;
     }
 
+    public boolean checkYBounds(Point2D[] coords, int yBound){
+        for(int i = 0; i < coords.length; i++){
+            if(coords[i].getY() == yBound) return false;
+        }
+        return true;
+    }
+
     public boolean checkCollisionLeft(Point2D[] coords){
         for(int i = 0; i < coords.length; i++){
             if(board[(int)coords[i].getY()][(int)coords[i].getX()-1] == 1) return false;
@@ -244,4 +287,25 @@ public class GameScreen implements Screen {
         }
         return true;
     }
+
+    public boolean checkCollisionBelow(Point2D[] coords){
+        for(int i = 0; i < coords.length; i++){
+            if(board[(int)coords[i].getY()+1][(int)coords[i].getX()] == 1) return false;
+        }
+        return true;
+    }
+
+    public boolean checkClearance(Point2D[] coords){
+        for(int i = 0; i < coords.length; i++){
+            if(board[(int)coords[i].getY()][(int)coords[i].getX()] == 1) return false;
+        }
+        return true;
+    }
+
+    public void setGridValues(Point2D[] coords, int value){
+        for(int i = 0; i < coords.length; i++){
+            board[(int)coords[i].getY()][(int)coords[i].getX()] = value;
+        }
+    }
+
 }
