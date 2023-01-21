@@ -153,8 +153,9 @@ public class GameScreen implements Screen {
         }
 
         if(Gdx.input.isKeyPressed(Input.Keys.UP) && TimeUtils.nanoTime() - lastMoveTime > 180000000) {
+            boolean rotatationCleared = false;
             lastMoveTime = TimeUtils.nanoTime();
-            Point2D[] coords = findTetromino();
+            Point2D[] coords = findTetromino(), rotatedCoordsArray = new Point2D[0];
             List<Point2D> rotatedCoords = new ArrayList<>();
 
             if(blockID == 0){
@@ -163,14 +164,249 @@ public class GameScreen implements Screen {
                         rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()-2+i));
                     }
 
-                    Point2D[] rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
 
                     if(checkClearance(rotatedCoordsArray)){
-                        setGridValues(coords,0);
-                        setGridValues(rotatedCoordsArray, 2);
                         blockState = 1;
+                        rotatationCleared = true;
                     }
                 }
+                else if(blockState == 1){
+                    for(int i = 0; i < 4; i++){
+                        rotatedCoords.add(new Point2D.Double(coords[2].getX()-2+i,coords[2].getY()));
+                    }
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 0;
+                        rotatationCleared = true;
+                    }
+                }
+            }
+            else if(blockID == 1){
+                if(blockState == 0){
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[1].getY()+1));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 1;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 1){
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX()-1,coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[3].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 2;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 2){
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[1].getY()-1));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[3].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[3].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 3;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 3){
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX()+1,coords[1].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 0;
+                        rotatationCleared = true;
+                    }
+                }
+            }
+            else if(blockID == 2){
+                if(blockState == 0){
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()+1));
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[2].getY()+1));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 1;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 1){
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX()-1,coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX()-1,coords[2].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 2;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 2){
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[0].getY()-1));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[0].getY()-1));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[3].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 3;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 3){
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX()+1,coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX()+1,coords[2].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 0;
+                        rotatationCleared = true;
+                    }
+                }
+            }
+            else if(blockID == 3){}
+            else if(blockID == 4){
+                if(blockState == 0){
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[3].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[2].getY()+1));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 1;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 1){
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX()+1,coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 0;
+                        rotatationCleared = true;
+                    }
+                }
+            }
+            else if(blockID == 5){
+                if(blockState == 0){
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[3].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[2].getY()+1));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 1;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 1){
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX()-1,coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[3].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 2;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 2){
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[0].getY()-1));
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[3].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 3;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 3){
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[1].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[0].getX()+1,coords[2].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 0;
+                        rotatationCleared = true;
+                    }
+                }
+            }
+            else if(blockID == 6){
+                if(blockState == 0){
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[3].getX(),coords[3].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()+1));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 1;
+                        rotatationCleared = true;
+                    }
+                }
+                else if(blockState == 1){
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX()-1,coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[0].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[1].getX(),coords[2].getY()));
+                    rotatedCoords.add(new Point2D.Double(coords[2].getX(),coords[2].getY()));
+
+                    rotatedCoordsArray = rotatedCoords.toArray(new Point2D[0]);
+
+                    if(checkClearance(rotatedCoordsArray)){
+                        blockState = 0;
+                        rotatationCleared = true;
+                    }
+                }
+            }
+
+            if(rotatationCleared){
+                setGridValues(coords,0);
+                setGridValues(rotatedCoordsArray, 2);
             }
         }
 
@@ -297,6 +533,7 @@ public class GameScreen implements Screen {
 
     public boolean checkClearance(Point2D[] coords){
         for(int i = 0; i < coords.length; i++){
+            if(coords[i].getY() > 19||coords[i].getY() < 0||coords[i].getX() > 9||coords[i].getX() < 0) return false;
             if(board[(int)coords[i].getY()][(int)coords[i].getX()] == 1) return false;
         }
         return true;
