@@ -20,7 +20,7 @@ public class GameScreen implements Screen {
 
     Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,blockImage;
     OrthographicCamera camera;
-    long lastMoveTime = 2000000000, gravityTime = 2000000000;
+    long lastRightMoveTime = 2000000000, gravityTime = 2000000000, lastHardDropTime = 2000000000, lastSoftDropTime = 2000000000, lastRotationTime = 2000000000, lastLeftMoveTime = 2000000000;
     int blockID, blockState;
     int[][] board = new int[20][10];
     public GameScreen(final FallingBlock game) {
@@ -116,8 +116,8 @@ public class GameScreen implements Screen {
         }
         game.batch.end();
 
-        if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && TimeUtils.nanoTime() - lastMoveTime > 210000000){
-            lastMoveTime = TimeUtils.nanoTime();
+        if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && TimeUtils.nanoTime() - lastLeftMoveTime > 210000000){
+            lastLeftMoveTime = TimeUtils.nanoTime();
             Point2D[] coords = findTetromino();
 
             if(checkXBounds(coords, 0) && checkCollisionLeft(coords)){
@@ -128,8 +128,8 @@ public class GameScreen implements Screen {
             }
         }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && TimeUtils.nanoTime() - lastMoveTime > 210000000){
-            lastMoveTime = TimeUtils.nanoTime();
+        if(Gdx.input.isKeyPressed(Input.Keys.RIGHT) && TimeUtils.nanoTime() - lastRightMoveTime > 210000000){
+            lastRightMoveTime = TimeUtils.nanoTime();
             Point2D[] coords = findTetromino();
 
             if(checkXBounds(coords, 9) && checkCollisionRight(coords)){
@@ -140,8 +140,8 @@ public class GameScreen implements Screen {
             }
         }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.DOWN) && TimeUtils.nanoTime() - lastMoveTime > 180000000){
-            lastMoveTime = TimeUtils.nanoTime();
+        if(Gdx.input.isKeyPressed(Input.Keys.DOWN) && TimeUtils.nanoTime() - lastSoftDropTime > 180000000){
+            lastSoftDropTime = TimeUtils.nanoTime();
             Point2D[] coords = findTetromino();
 
             if(checkYBounds(coords,19) && checkCollisionBelow(coords)){
@@ -152,9 +152,9 @@ public class GameScreen implements Screen {
             }
         }
 
-        if(Gdx.input.isKeyPressed(Input.Keys.UP) && TimeUtils.nanoTime() - lastMoveTime > 180000000) {
+        if(Gdx.input.isKeyPressed(Input.Keys.UP) && TimeUtils.nanoTime() - lastRotationTime > 210000000) {
             boolean rotatationCleared = false;
-            lastMoveTime = TimeUtils.nanoTime();
+            lastRotationTime = TimeUtils.nanoTime();
             Point2D[] coords = findTetromino(), rotatedCoordsArray = new Point2D[0];
             List<Point2D> rotatedCoords = new ArrayList<>();
 
@@ -410,32 +410,32 @@ public class GameScreen implements Screen {
             }
         }
 
+        if(Gdx.input.isKeyPressed(Input.Keys.SPACE) && TimeUtils.nanoTime() - lastHardDropTime > 600000000){
+            lastHardDropTime = TimeUtils.nanoTime();
+            Point2D[] coords = findTetromino();
+
+            while(checkYBounds(coords,19) && checkCollisionBelow(coords)){
+                for(int i = 3; i >= 0; i--){
+                    board[(int)coords[i].getY()+1][(int)coords[i].getX()] = 2;
+                    board[(int)coords[i].getY()][(int)coords[i].getX()] = 0;
+                }
+                coords = findTetromino();
+            }
+        }
+
         if(TimeUtils.nanoTime() - gravityTime > 750000000){
             gravityTime= TimeUtils.nanoTime();
 
-            for(int i = 19; i >= 0; i--){
-                for(int j = 0; j < 10; j++){
-                    if(board[i][j] == 2 && i != 19 && board[i+1][j] != 1){
-                        board[i][j] = 0;
-                        board[i+1][j] = 2;
-                    }
-                    else if(board[i][j] == 2){
-                        if(i!=19) {
-                            j--;
+            Point2D[] coords = findTetromino();
 
-                            while (j >= 0) {
-                                if (board[i + 1][j] == 2) {
-                                    board[i][j] = 2;
-                                    board[i + 1][j] = 0;
-                                }
-                                j--;
-                            }
-                        }
-                        paralyze();
-                        break;
-                    }
+            if(checkYBounds(coords,19) && checkCollisionBelow(coords)){
+                for(int i = coords.length-1; i >= 0; i--){
+                    board[(int)coords[i].getY()][(int)coords[i].getX()] = 0;
+                    board[(int)coords[i].getY()+1][(int)coords[i].getX()] = 2;
                 }
             }
+
+            else paralyze();
         }
     }
 
