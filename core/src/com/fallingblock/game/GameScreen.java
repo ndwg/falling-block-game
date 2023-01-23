@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.TimeUtils;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 public class GameScreen implements Screen {
     final FallingBlock game;
@@ -22,6 +23,7 @@ public class GameScreen implements Screen {
     OrthographicCamera camera;
     long lastRightMoveTime = 2000000000, gravityTime = 2000000000, lastHardDropTime = 2000000000, lastSoftDropTime = 2000000000, lastRotationTime = 2000000000, lastLeftMoveTime = 2000000000;
     int blockID, blockState;
+    Stack completedLines;
     int[][] board = new int[20][10];
     public GameScreen(final FallingBlock game) {
         this.game = game;
@@ -115,6 +117,10 @@ public class GameScreen implements Screen {
             }
         }
         game.batch.end();
+
+        completedLines = checkForCompletedLines();
+
+        if(!completedLines.isEmpty()) removeCompletedLines(completedLines);
 
         if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && TimeUtils.nanoTime() - lastLeftMoveTime > 210000000){
             lastLeftMoveTime = TimeUtils.nanoTime();
@@ -542,6 +548,40 @@ public class GameScreen implements Screen {
     public void setGridValues(Point2D[] coords, int value){
         for(int i = 0; i < coords.length; i++){
             board[(int)coords[i].getY()][(int)coords[i].getX()] = value;
+        }
+    }
+
+    public Stack checkForCompletedLines(){
+        Stack completedLines = new Stack();
+
+        for(int i = 0; i < board.length; i++){
+            for(int j = 0; j < board[0].length; j++){
+                if(board[i][j] == 0 || board[i][j] == 2) break;
+                if(j == 9) completedLines.push(i);
+            }
+        }
+
+        return completedLines;
+    }
+
+    public void removeCompletedLines(Stack lines){
+        int offset = 0;
+
+        while(!lines.isEmpty()){
+            for(int i = 0; i < 10; i++){
+                board[(int)lines.peek()+offset][i] = 0;
+            }
+            for(int i = (int)lines.peek()+offset; i > 0; i--){
+                for(int j = 0; j < 10; j++){
+                    if(board[i-1][j] == 1){
+                        board[i-1][j] = 0;
+                        board[i][j] = 1;
+                    }
+                }
+            }
+
+            lines.pop();
+            offset++;
         }
     }
 
