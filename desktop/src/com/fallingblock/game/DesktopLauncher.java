@@ -10,7 +10,7 @@ public class DesktopLauncher {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setForegroundFPS(60);
 		config.setTitle("Falling Block Game");
-		config.setWindowedMode(240, 480);
+		config.setWindowedMode(480, 480);
 		config.useVsync(true);
 		new Lwjgl3Application(new FallingBlock(), config);
 	}

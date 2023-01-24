@@ -13,7 +13,7 @@ public class MainMenuScreen implements Screen {
         this.game = game;
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false,240, 480);
+        camera.setToOrtho(false,480, 480);
     }
 
     @Override
@@ -29,8 +29,8 @@ public class MainMenuScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
 
         game.batch.begin();
-        game.font.draw(game.batch, "Welcome to Falling Block Game!!!",10,150);
-        game.font.draw(game.batch, "Click to start!", 10, 100);
+        game.font.draw(game.batch, "Welcome to Falling Block Game!!!",60,150);
+        game.font.draw(game.batch, "Click to start!", 60, 100);
         game.batch.end();
 
         if(Gdx.input.isTouched()){

@@ -10,21 +10,20 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class GameScreen implements Screen {
     final FallingBlock game;
 
     //String imageID;
 
-    Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,blockImage;
+    Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,panelImage,blockImage,backgroundImage;
     OrthographicCamera camera;
     long lastRightMoveTime = 2000000000, gravityTime = 2000000000, lastHardDropTime = 2000000000, lastSoftDropTime = 2000000000, lastRotationTime = 2000000000, lastLeftMoveTime = 2000000000;
     int blockID, blockState;
-    Stack completedLines;
+    Stack completedLines, hold = new Stack();
     int[][] board = new int[20][10];
+    boolean holdlock = true;
     public GameScreen(final FallingBlock game) {
         this.game = game;
         
@@ -35,9 +34,12 @@ public class GameScreen implements Screen {
         sImage = new Texture(Gdx.files.internal("S.png"));
         tImage = new Texture(Gdx.files.internal("T.png"));
         zImage = new Texture(Gdx.files.internal("Z.png"));
+        panelImage = new Texture(Gdx.files.internal("panel.png"));
+        blockImage = new Texture(Gdx.files.internal("block.png"));
+        backgroundImage = new Texture(Gdx.files.internal("background.png"));
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false,240, 480);
+        camera.setToOrtho(false,480, 480);
 
         for(int i = 0; i < 20; i++){
             for(int j = 0; j < 10; j++){
@@ -51,6 +53,52 @@ public class GameScreen implements Screen {
     private void spawnBlock() {
         blockID = MathUtils.random(6);
         blockState = 0;
+        if(blockID==0){
+            board[0][3] = 2;
+            board[0][4] = 2;
+            board[0][5] = 2;
+            board[0][6] = 2;
+        }
+        else if(blockID==1){
+            board[0][3] = 2;
+            board[1][3] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+        else if(blockID==2){
+            board[1][3] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+            board[0][5] = 2;
+        }
+        else if(blockID==3){
+            board[0][4] = 2;
+            board[0][5] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+        else if(blockID==4){
+            board[0][5] = 2;
+            board[0][4] = 2;
+            board[1][4] = 2;
+            board[1][3] = 2;
+        }
+        else if(blockID==5){
+            board[0][4] = 2;
+            board[1][3] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+        else if(blockID==6){
+            board[0][3] = 2;
+            board[0][4] = 2;
+            board[1][4] = 2;
+            board[1][5] = 2;
+        }
+    }
+    private void spawnBlock(int ID) {
+        blockID = ID;
+
         if(blockID==0){
             board[0][3] = 2;
             board[0][4] = 2;
@@ -109,10 +157,36 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
 
         game.batch.begin();
+        game.batch.draw(panelImage,240,0);
+        game.batch.draw(backgroundImage,300,300);
+        if(!hold.isEmpty()){
+            if((int)hold.peek()==0) {
+                game.batch.draw(iImage,312,348);
+            }
+            if((int)hold.peek()==1) {
+                game.batch.draw(jImage,324,336);
+            }
+            if((int)hold.peek()==2) {
+                game.batch.draw(lImage,324,336);
+            }
+            if((int)hold.peek()==3) {
+                game.batch.draw(oImage,336,336);
+            }
+            if((int)hold.peek()==4) {
+                game.batch.draw(sImage,324,336);
+            }
+            if((int)hold.peek()==5) {
+                game.batch.draw(tImage,324,336);
+            }
+            if((int)hold.peek()==6) {
+                game.batch.draw(zImage,324,336);
+            }
+        }
+
         for(int i = 0; i < 20; i++){
             for(int j = 0; j < 10; j++){
                 if(board[i][j] > 0){
-                    game.batch.draw(iImage,j*24,(19-i)*24);
+                    game.batch.draw(blockImage,j*24,(19-i)*24);
                 }
             }
         }
@@ -121,6 +195,24 @@ public class GameScreen implements Screen {
         completedLines = checkForCompletedLines();
 
         if(!completedLines.isEmpty()) removeCompletedLines(completedLines);
+
+        if(Gdx.input.isKeyPressed(Input.Keys.C) && holdlock){
+            Point2D coords[] = findTetromino();
+
+            if(!hold.isEmpty()){
+                setGridValues(coords,0);
+                int heldBlock = (int)hold.pop();
+                hold.push(blockID);
+                spawnBlock(heldBlock);
+            }
+            else{
+                setGridValues(coords,0);
+                hold.push(blockID);
+                spawnBlock();
+            }
+
+            holdlock = false;
+        }
 
         if(Gdx.input.isKeyPressed(Input.Keys.LEFT) && TimeUtils.nanoTime() - lastLeftMoveTime > 210000000){
             lastLeftMoveTime = TimeUtils.nanoTime();
@@ -474,6 +566,9 @@ public class GameScreen implements Screen {
         sImage.dispose();
         tImage.dispose();
         zImage.dispose();
+        blockImage.dispose();
+        backgroundImage.dispose();
+        panelImage.dispose();
     }
 
     public void paralyze() {
@@ -483,6 +578,7 @@ public class GameScreen implements Screen {
             board[(int)coords[i].getY()][(int)coords[i].getX()] = 1;
         }
 
+        holdlock = true;
         spawnBlock();
     }
 
