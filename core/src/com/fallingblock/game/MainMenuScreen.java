@@ -13,7 +13,7 @@ public class MainMenuScreen implements Screen {
         this.game = game;
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false,480, 480);
+        camera.setToOrtho(false,360, 480);
     }
 
     @Override
