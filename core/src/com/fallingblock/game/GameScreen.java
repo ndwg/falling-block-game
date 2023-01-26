@@ -5,26 +5,32 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.TimeUtils;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.util.List;
 
 public class GameScreen implements Screen {
     final FallingBlock game;
 
-    //String imageID;
-
-    Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,panelImage,blockImage,backgroundImage,upcomingImage;
+    Texture iImage,jImage,lImage,oImage,sImage,tImage,zImage,panelImage,blockImage,backgroundImage,upcomingImage,gameOverImage,retryImage,exitImage;
     OrthographicCamera camera;
     long lastRightMoveTime = 2000000000, gravityTime = 2000000000, lastHardDropTime = 2000000000, lastSoftDropTime = 2000000000, lastRotationTime = 2000000000, lastLeftMoveTime = 2000000000;
     int blockID, blockState;
     Stack completedLines = new Stack(), hold = new Stack();
     int[][] board = new int[20][10];
-    boolean holdLock = true;
+    boolean holdLock = true, gameOver = false;
     int[] next = new int[3];
+    //Stage stage;
     public GameScreen(final FallingBlock game) {
         this.game = game;
         
@@ -39,6 +45,9 @@ public class GameScreen implements Screen {
         blockImage = new Texture(Gdx.files.internal("block.png"));
         backgroundImage = new Texture(Gdx.files.internal("background.png"));
         upcomingImage = new Texture(Gdx.files.internal("upcoming.png"));
+        gameOverImage = new Texture(Gdx.files.internal("gameover.png"));
+        retryImage = new Texture(Gdx.files.internal("retry.png"));
+        exitImage = new Texture(Gdx.files.internal("exit.png"));
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false,360, 480);
@@ -67,42 +76,70 @@ public class GameScreen implements Screen {
         blockState = 0;
 
         if(blockID==0){
+            if(board[0][3] == 1 || board[0][4] == 1 || board[0][5] == 1 || board[0][6] == 1) {
+                gameOver = true;
+                return;
+            }
             board[0][3] = 2;
             board[0][4] = 2;
             board[0][5] = 2;
             board[0][6] = 2;
         }
         else if(blockID==1){
+            if(board[0][3] == 1 || board[1][3] == 1 || board[1][4] == 1 || board[1][5] == 1) {
+                gameOver = true;
+                return;
+            }
             board[0][3] = 2;
             board[1][3] = 2;
             board[1][4] = 2;
             board[1][5] = 2;
         }
         else if(blockID==2){
+            if(board[1][3] == 1 || board[1][4] == 1 || board[1][5] == 1 || board[0][5] == 1) {
+                gameOver = true;
+                return;
+            }
             board[1][3] = 2;
             board[1][4] = 2;
             board[1][5] = 2;
             board[0][5] = 2;
         }
         else if(blockID==3){
+            if(board[0][4] == 1 || board[0][5] == 1 || board[1][4] == 1 || board[1][5] == 1) {
+                gameOver = true;
+                return;
+            }
             board[0][4] = 2;
             board[0][5] = 2;
             board[1][4] = 2;
             board[1][5] = 2;
         }
         else if(blockID==4){
+            if(board[0][5] == 1 || board[0][4] == 1 || board[1][4] == 1 || board[1][3] == 1) {
+                gameOver = true;
+                return;
+            }
             board[0][5] = 2;
             board[0][4] = 2;
             board[1][4] = 2;
             board[1][3] = 2;
         }
         else if(blockID==5){
+            if(board[0][4] == 1 || board[1][3] == 1 || board[1][4] == 1 || board[1][5] == 1) {
+                gameOver = true;
+                return;
+            }
             board[0][4] = 2;
             board[1][3] = 2;
             board[1][4] = 2;
             board[1][5] = 2;
         }
         else if(blockID==6){
+            if(board[0][3] == 1 || board[0][4] == 1 || board[1][4] == 1 || board[1][5] == 1) {
+                gameOver = true;
+                return;
+            }
             board[0][3] = 2;
             board[0][4] = 2;
             board[1][4] = 2;
@@ -117,6 +154,11 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        if(gameOver){
+            game.setScreen(new MainMenuScreen(game));
+            dispose();
+        }
+
         ScreenUtils.clear(0.05f,0,0.1f,0.5f);
 
         camera.update();
@@ -182,11 +224,24 @@ public class GameScreen implements Screen {
                 }
             }
         }
+
+        /*if(gameOver){
+            game.batch.draw(gameOverImage,126,144);
+            //game.batch.draw(exitImage,150,154);
+            //game.batch.draw(retryImage,150,199);
+            Drawable drawable = new TextureRegionDrawable(new TextureRegion(retryImage));
+            ImageButton playButton = new ImageButton(drawable);
+            //game.batch.draw(playButton,0,0);
+            ImageButton.setPosition(0,0);
+            stage.addActor(playButton);
+        }*/
         game.batch.end();
 
         completedLines = checkForCompletedLines();
 
         if(!completedLines.isEmpty()) removeCompletedLines(completedLines);
+
+        //if(Gdx.input.isTouched(retryImage))
 
         if(Gdx.input.isKeyPressed(Input.Keys.C) && holdLock){
             Point2D coords[] = findTetromino();
